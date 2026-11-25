@@ -41,6 +41,18 @@
       <div class="field"><label for="description" data-i18n="description"></label><textarea id="description" name="description" required></textarea></div>
 
       <div class="field">
+        <label data-i18n="yourLocation"></label>
+        <p class="muted small" style="margin:0 0 8px" data-i18n="locationHint"></p>
+        <div class="row">
+          <button type="button" class="btn ghost sm" id="geo-btn">📍 <span data-i18n="useMyLocation"></span></button>
+          <button type="button" class="btn ghost sm" id="pick-btn">🗺 <span data-i18n="pickOnMap"></span></button>
+          <button type="button" class="btn danger sm" id="geo-clear" hidden data-i18n="removePin"></button>
+        </div>
+        <div id="map" hidden></div>
+        <p class="muted small" id="geo-info" style="margin:6px 0 0"></p>
+      </div>
+
+      <div class="field">
         <label data-i18n="photos"></label>
         <span class="btn ghost sm file-btn">📷 <span data-i18n="addPhotos"></span><input id="photo-input" type="file" accept="image/*" multiple></span>
         <div class="previews" id="previews"></div>

@@ -2,7 +2,7 @@ import { api, DEMO } from "./db.js";
 import { t } from "./i18n.js";
 import { $, $$, esc, initPage, authGate, toast, modal, statusBadge, fmtDateTime, waLink, dayKey,
   toLocalInput, fromLocalInput, photoPicker, uploadPhotos, fmtDuration } from "./ui.js";
-import { complaintInfo, reportInfo } from "./views.js";
+import { complaintInfo, reportInfo, timelineHtml, printerHistoryHtml, historySection, navUrl, mapsUrl } from "./views.js";
 import { sendEmail } from "./notify.js";
 import { exportDayPdf, jobsForDay } from "./pdf.js";
 
@@ -41,7 +41,7 @@ function render() {
       <p class="muted small" style="margin:2px 0 10px">${esc(j.ticketId)} · ${fmtDateTime(j.createdAt)}</p>
       <dl class="kv">
         <dt>${esc(t("printer"))}</dt><dd>${esc([j.brand, j.model].filter(Boolean).join(" "))} · ${esc(j.serial)}</dd>
-        <dt>${esc(t("location"))}</dt><dd>${esc(j.location || "—")}</dd>
+        <dt>${esc(t("location"))}</dt><dd>${esc(j.location || "—")}${j.geo ? ` · 📍 <a href="${esc(mapsUrl(j.geo))}" target="_blank" rel="noopener">${esc(t("openMaps"))}</a>` : ""}</dd>
         <dt>${esc(t("problem"))}</dt><dd><b>${esc(t("issue_" + j.issueType))}</b> — ${esc(j.description)}</dd>
         <dt>${esc(t("reportedBy"))}</dt><dd>${esc(j.name)} · <a href="tel:${esc(j.phone)}">${esc(j.phone)}</a></dd>
         ${j.report?.arrival ? `<dt>${esc(t("arrival"))}</dt><dd>${fmtDateTime(j.report.arrival)}${j.report.departure ? ` → ${fmtDuration(j.report.arrival, j.report.departure)}` : ""}</dd>` : ""}
@@ -49,7 +49,8 @@ function render() {
       <div class="row" style="margin-top:12px">
         ${j.status === "assigned" || j.status === "follow_up" ? `<button class="btn" data-start="${esc(j.ticketId)}" type="button">${esc(t("startJob"))}</button>` : ""}
         ${ACTIVE.includes(j.status) ? `<button class="btn ${j.status === "in_progress" ? "" : "ghost"}" data-report="${esc(j.ticketId)}" type="button">📝 ${esc(t("jobReport"))}</button>` : ""}
-        ${!ACTIVE.includes(j.status) ? `<button class="btn ghost" data-view="${esc(j.ticketId)}" type="button">${esc(t("details"))}</button>` : ""}
+        ${j.geo && ACTIVE.includes(j.status) ? `<a class="btn ghost" href="${esc(navUrl(j.geo))}" target="_blank" rel="noopener">🧭 ${esc(t("navigate"))}</a>` : ""}
+        <button class="btn ghost" data-view="${esc(j.ticketId)}" type="button">${ACTIVE.includes(j.status) ? "🕘 " + esc(t("history_btn")) : esc(t("details"))}</button>
         ${j.status === "assigned" ? `<a class="btn wa sm" target="_blank" rel="noopener" href="${waLink(j.phone, `Hello ${j.name}, this is ${me.name} from ${settings.companyName || "the service team"}. I'm on my way for your printer service (Ticket ${j.ticketId}).`)}">💬 ${esc(t("onMyWay"))}</a>` : ""}
       </div>
     </article>`).join("") : `<div class="card muted">${esc(t("noJobs"))}</div>`;
@@ -58,7 +59,11 @@ function render() {
   $$("[data-report]").forEach((b) => (b.onclick = () => openReport(b.dataset.report)));
   $$("[data-view]").forEach((b) => (b.onclick = () => {
     const j = jobs.find((x) => x.ticketId === b.dataset.view);
-    modal(`<h2>${esc(j.ticketId)}</h2>${complaintInfo(j)}${reportInfo(j)}`, { wide: true });
+    const m = modal(`<h2>${esc(j.ticketId)}</h2>${complaintInfo(j)}${reportInfo(j)}${timelineHtml(j)}${historySection()}`, { wide: true });
+    const box = m.el.querySelector("[data-hist]");
+    api.getPrinterHistory(j.printerId)
+      .then((list) => { box.innerHTML = printerHistoryHtml(list, j.ticketId); })
+      .catch((e) => { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; });
   }));
 }
 

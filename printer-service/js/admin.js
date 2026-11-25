@@ -1,7 +1,7 @@
 import { api, DEMO, printerIdFromSerial } from "./db.js";
 import { t } from "./i18n.js";
 import { $, $$, esc, initPage, authGate, toast, modal, statusBadge, fmtDateTime, waLink, dayKey } from "./ui.js";
-import { complaintInfo, reportInfo } from "./views.js";
+import { complaintInfo, reportInfo, timelineHtml, printerHistoryHtml, historySection, mapsUrl } from "./views.js";
 import { sendEmail } from "./notify.js";
 import { exportDayPdf, jobsForDay } from "./pdf.js";
 
@@ -81,6 +81,8 @@ function openComplaint(id) {
     <h2>${esc(c.ticketId)}</h2>
     ${complaintInfo(c)}
     ${reportInfo(c)}
+    ${timelineHtml(c)}
+    ${historySection()}
     <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
     <label for="m-tech" data-i18n="assignTo"></label>
     <div class="row" style="flex-wrap:nowrap">
@@ -94,7 +96,8 @@ function openComplaint(id) {
       ${c.status !== "cancelled" && c.status !== "completed" ? `<button class="btn danger sm" id="m-cancel" type="button" data-i18n="cancelComplaint"></button>` : ""}
     </div>`, { wide: true });
 
-  const techMsg = (tech) => `New service job assigned: ${c.ticketId}\nPrinter: ${c.brand} ${c.model} (${c.serial})\nClient: ${c.printerClient || c.company}\nLocation: ${c.location}\nContact: ${c.name} ${c.phone}\nProblem: ${t("issue_" + c.issueType)} — ${c.description}\n\nOpen your portal: ${portalBase()}/tech.html`;
+  const techMsg = (tech) => `New service job assigned: ${c.ticketId}\nPrinter: ${c.brand} ${c.model} (${c.serial})\nClient: ${c.printerClient || c.company}\nLocation: ${c.location}\nContact: ${c.name} ${c.phone}\nProblem: ${t("issue_" + c.issueType)} — ${c.description}${c.geo ? `\nMap: ${mapsUrl(c.geo)}` : ""}\n\nOpen your portal: ${portalBase()}/tech.html`;
+  m.el.querySelector("[data-hist]").innerHTML = printerHistoryHtml(complaints.filter((x) => x.printerId === c.printerId), c.ticketId);
   const setWaTech = (tech) => {
     const a = $("#m-wa-tech", m.el);
     if (tech && tech.phone) { a.hidden = false; a.href = waLink(tech.phone, techMsg(tech)); } else a.hidden = true;
@@ -148,16 +151,30 @@ function renderPrinters() {
       <td><b>${esc(p.serial)}</b></td><td>${esc(p.brand)}</td><td>${esc(p.model)}</td>
       <td>${esc(p.clientName)}<div class="muted small">${esc(p.clientPhone)}</div></td><td>${esc(p.location)}</td>
       <td class="row" style="flex-wrap:nowrap">
+        <button class="btn ghost sm" data-hist-p="${esc(p.id)}" type="button">🕘 ${esc(t("history_btn"))}</button>
         <button class="btn ghost sm" data-qr="${esc(p.id)}" type="button">${esc(t("showQr"))}</button>
         <button class="btn ghost sm" data-edit="${esc(p.id)}" type="button">${esc(t("edit"))}</button>
         <button class="btn danger sm" data-del="${esc(p.id)}" type="button">${esc(t("delete"))}</button>
       </td>
     </tr>`).join("") || `<tr><td colspan="7" class="muted">—</td></tr>`;
   $$("[data-sel]").forEach((cb) => (cb.onchange = () => { cb.checked ? selected.add(cb.dataset.sel) : selected.delete(cb.dataset.sel); updateSel(); }));
+  $$("[data-hist-p]").forEach((b) => (b.onclick = () => showPrinterHistory(printers.find((p) => p.id === b.dataset.histP))));
   $$("[data-qr]").forEach((b) => (b.onclick = () => printLabels([printers.find((p) => p.id === b.dataset.qr)])));
   $$("[data-edit]").forEach((b) => (b.onclick = () => editPrinter(printers.find((p) => p.id === b.dataset.edit))));
   $$("[data-del]").forEach((b) => (b.onclick = async () => { if (confirm(t("confirmDelete"))) { await api.deletePrinter(b.dataset.del); selected.delete(b.dataset.del); updateSel(); } }));
   updateSel();
+}
+function showPrinterHistory(p) {
+  const list = complaints.filter((c) => c.printerId === p.id);
+  modal(`
+    <h2>🕘 ${esc(t("printerHistory"))}</h2>
+    <dl class="kv" style="margin-bottom:12px">
+      <dt>${esc(t("printer"))}</dt><dd><b>${esc([p.brand, p.model].filter(Boolean).join(" "))}</b> · ${esc(p.serial)}</dd>
+      <dt>${esc(t("client"))}</dt><dd>${esc(p.clientName || "—")}</dd>
+      <dt>${esc(t("location"))}</dt><dd>${esc(p.location || "—")}</dd>
+      <dt>${esc(t("jobsCount"))}</dt><dd>${list.length}</dd>
+    </dl>
+    ${printerHistoryHtml(list, null)}`, { wide: true });
 }
 function updateSel() { $("#sel-count").textContent = selected.size ? `(${selected.size})` : ""; }
 $("#p-search").oninput = renderPrinters;
