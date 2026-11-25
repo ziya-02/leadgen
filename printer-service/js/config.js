@@ -9,12 +9,12 @@
 
 export const CONFIG = {
   firebase: {
-    apiKey: "",
-    authDomain: "",
-    projectId: "",
-    storageBucket: "",
-    messagingSenderId: "",
-    appId: "",
+    apiKey: "AIzaSyD5mK5a4LZww5hyco3DLvEB_PoAwXEbJIQ",
+    authDomain: "printer-com.firebaseapp.com",
+    projectId: "printer-com",
+    storageBucket: "printer-com.firebasestorage.app",
+    messagingSenderId: "655869737054",
+    appId: "1:655869737054:web:2dba9b9253366e03c5dccf",
   },
 
   // Optional automatic e-mail alerts via EmailJS (free tier: 200 mails/month).
