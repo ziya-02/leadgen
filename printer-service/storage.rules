@@ -1,0 +1,14 @@
+rules_version = '2';
+// Only used when inlinePhotos is false in js/config.js
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /complaints/{ticket}/{file} {
+      allow read: if request.auth != null;
+      allow create: if request.resource.size < 5 * 1024 * 1024 && request.resource.contentType.matches('image/.*');
+    }
+    match /reports/{ticket}/{file} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.resource.size < 8 * 1024 * 1024 && request.resource.contentType.matches('image/.*');
+    }
+  }
+}

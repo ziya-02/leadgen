@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Service Portal</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header class="top"><div class="wrap">
+    <a class="brand" href="index.html"><img data-company-logo hidden alt=""><span data-company-name>Service Portal</span></a>
+    <div class="spacer"></div>
+    <button class="btn ghost sm" data-lang-toggle type="button">العربية</button>
+  </div></header>
+
+  <main class="wrap narrow">
+    <div class="hero">
+      <h1 data-i18n="landingTitle">Printer Service Portal</h1>
+      <p class="muted" data-i18n="landingSub"></p>
+    </div>
+    <div class="card grid">
+      <a class="btn block" href="track.html" data-i18n="trackComplaint">Track a complaint</a>
+      <a class="btn ghost block" href="tech.html" data-i18n="techPortal">Technician portal</a>
+      <a class="btn ghost block" href="admin.html" data-i18n="adminPortal">Admin portal</a>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initPage } from "./js/ui.js";
+    initPage();
+  </script>
+</body>
+</html>
