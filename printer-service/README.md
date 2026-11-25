@@ -11,7 +11,9 @@ Each printer has its own QR sticker. A client scans it and reports a problem wit
 
 ## 1. Try it now (demo mode)
 
-With `js/config.js` left as it is, the app runs in **demo mode**: all data is kept in your browser, with nothing to set up.
+> **This copy is connected to the live Firebase project `printer-com`** (see `js/config.js`). Running it locally uses the real database and real logins, so the demo accounts below don't exist. To use demo mode, make a local copy and set `firebase.apiKey` to `""` in `js/config.js`. Don't commit that change, or the live site will switch to demo mode too.
+
+With `firebase.apiKey` empty, the app runs in **demo mode**: all data is kept in your browser, with nothing to set up.
 
 ```bash
 cd printer-service
