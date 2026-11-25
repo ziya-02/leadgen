@@ -1,0 +1,56 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function profile() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function isAdmin() { return signedIn() && profile().role == 'admin' && profile().get('active', true) != false; }
+    function isTech()  { return signedIn() && profile().role == 'tech'  && profile().get('active', true) != false; }
+
+    // Branding: public so the client form can show logo/company name.
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Staff accounts (admin + technicians)
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // Printers: anyone can fetch ONE printer by its ID (the QR code), only admin can list/edit.
+    match /printers/{id} {
+      allow get: if true;
+      allow list, write: if isAdmin();
+    }
+
+    // Complaints
+    match /complaints/{id} {
+      // Clients (no login) may only create brand-new, unassigned complaints for a registered printer.
+      allow create: if request.resource.data.ticketId == id
+        && request.resource.data.status == 'new'
+        && request.resource.data.assignedTo == ''
+        && exists(/databases/$(database)/documents/printers/$(request.resource.data.printerId))
+        && request.resource.data.description is string
+        && request.resource.data.description.size() < 5000;
+
+      allow read, update, delete: if isAdmin();
+
+      // Technicians see and update only jobs assigned to them, and only the report fields.
+      allow read: if isTech() && resource.data.assignedTo == request.auth.uid;
+      allow update: if isTech() && resource.data.assignedTo == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'report', 'updatedAt', 'history'])
+        && request.resource.data.status in ['in_progress', 'completed', 'follow_up'];
+    }
+
+    // Public status-only copy of each complaint, for the "Track" page (no phone/e-mail inside).
+    match /tickets/{id} {
+      allow get: if true;
+      allow create: if (request.resource.data.status == 'new'
+                        && exists(/databases/$(database)/documents/complaints/$(id))) || isAdmin();
+      allow update: if isAdmin()
+        || (isTech() && get(/databases/$(database)/documents/complaints/$(id)).data.assignedTo == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+  }
+}

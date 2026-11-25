@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Track complaint</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header class="top"><div class="wrap">
+    <a class="brand" href="index.html"><img data-company-logo hidden alt=""><span data-company-name>Service Portal</span></a>
+    <div class="spacer"></div>
+    <button class="btn ghost sm" data-lang-toggle type="button">العربية</button>
+  </div></header>
+
+  <main class="wrap narrow">
+    <form class="card" id="find">
+      <h1 data-i18n="trackComplaint">Track a complaint</h1>
+      <label for="tid" data-i18n="ticketNo"></label>
+      <div class="row" style="flex-wrap:nowrap">
+        <input id="tid" placeholder="PC-XXXXXXXX" autocapitalize="characters" required>
+        <button class="btn" data-i18n="find">Find</button>
+      </div>
+    </form>
+    <div id="result"></div>
+  </main>
+
+  <script type="module">
+    import { api } from "./js/db.js";
+    import { t } from "./js/i18n.js";
+    import { $, esc, initPage, statusBadge, fmtDateTime } from "./js/ui.js";
+    await initPage();
+    let current = null;
+    function render() {
+      const box = $("#result");
+      if (current === null) { box.innerHTML = ""; return; }
+      if (!current) { box.innerHTML = `<div class="card err">${esc(t("ticketNotFound"))}</div>`; return; }
+      const k = current;
+      box.innerHTML = `<div class="card">
+        <div class="row between"><h2 style="margin:0">${esc(k.ticketId)}</h2>${statusBadge(k.status)}</div>
+        <dl class="kv" style="margin-top:12px">
+          <dt>${esc(t("printer"))}</dt><dd>${esc([k.brand, k.model].filter(Boolean).join(" "))} · ${esc(k.serial)}</dd>
+          <dt>${esc(t("reported"))}</dt><dd>${fmtDateTime(k.createdAt)}</dd>
+          <dt>${esc(t("lastUpdate"))}</dt><dd>${fmtDateTime(k.updatedAt)}</dd>
+          ${k.assignedName ? `<dt>${esc(t("technician"))}</dt><dd>${esc(k.assignedName)}</dd>` : ""}
+        </dl></div>`;
+    }
+    async function find(id) {
+      id = id.trim().toUpperCase(); if (!id) return;
+      $("#tid").value = id;
+      current = await api.getTicket(id).catch(() => false) || false;
+      render();
+    }
+    $("#find").onsubmit = (e) => { e.preventDefault(); find($("#tid").value); };
+    document.addEventListener("langchange", render);
+    const q = new URLSearchParams(location.search).get("t");
+    if (q) find(q);
+  </script>
+</body>
+</html>

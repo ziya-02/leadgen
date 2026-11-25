@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Technician</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header class="top"><div class="wrap">
+    <a class="brand" href="index.html"><img data-company-logo hidden alt=""><span data-company-name>Service Portal</span></a>
+    <div class="spacer"></div>
+    <button class="btn ghost sm" data-lang-toggle type="button">العربية</button>
+    <button class="btn ghost sm" data-logout type="button" data-i18n="logout" id="logout-btn" hidden>Log out</button>
+  </div></header>
+
+  <main class="wrap" style="max-width:820px">
+    <form id="login" class="card narrow" style="margin:40px auto" hidden>
+      <h1 data-i18n="techPortal">Technician portal</h1>
+      <p class="muted" data-i18n="loginTitle"></p>
+      <div class="field"><label for="l-email" data-i18n="email"></label><input id="l-email" name="email" type="email" autocomplete="username" required></div>
+      <div class="field"><label for="l-pw" data-i18n="password"></label><input id="l-pw" name="password" type="password" autocomplete="current-password" required></div>
+      <div class="err" id="login-err"></div>
+      <button class="btn block" data-i18n="login">Log in</button>
+      <p class="muted small demo-hint" hidden>Demo: tech1@demo.com / demo123</p>
+    </form>
+
+    <div id="app" hidden>
+      <div class="row between" style="margin-bottom:8px">
+        <h1 style="margin:0"><span data-i18n="myJobs"></span> · <span data-user-name></span></h1>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="row">
+          <label for="day" style="margin:0" data-i18n="reportDate"></label>
+          <input type="date" id="day" style="width:auto">
+          <button class="btn" id="pdf-btn" type="button">📄 <span data-i18n="exportDay"></span></button>
+          <span class="muted small" id="day-summary"></span>
+        </div>
+      </div>
+
+      <nav class="tabs" id="tabs">
+        <button data-tab="active" class="on"><span data-i18n="active"></span><span class="count" id="active-count" hidden></span></button>
+        <button data-tab="history" data-i18n="history"></button>
+      </nav>
+      <div class="jobs" id="jobs"></div>
+    </div>
+  </main>
+
+  <script type="module" src="js/tech.js"></script>
+</body>
+</html>
