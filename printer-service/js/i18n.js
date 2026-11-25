@@ -64,6 +64,14 @@ const dict = {
     completeJob: "Save & complete job", exportDay: "Export day as PDF", reportDate: "Report date",
     duration: "Duration", jobsCount: "Jobs", generatedOn: "Generated on",
     onMyWay: "Tell client I'm on my way", notifyDone: "Send completion to client",
+    // history + location
+    printerHistory: "Printer service history", noHistory: "No previous service on this printer.",
+    timeline: "Timeline", previousVisits: "previous visits", history_btn: "History",
+    yourLocation: "Your location (optional)", locationHint: "Share your location so our technician can find you easily.",
+    useMyLocation: "Use my current location", pickOnMap: "Pick on map", locating: "Getting your location…",
+    locationSet: "Location pinned. Drag the pin or tap the map to adjust.", locationFailed: "Couldn't get your location. Tap the map to place the pin.",
+    removePin: "Remove pin", mapPin: "Location pin", openMaps: "Open in Google Maps", navigate: "Navigate",
+    accuracy: "accuracy",
   },
   ar: {
     appName: "بوابة الصيانة",
@@ -121,6 +129,13 @@ const dict = {
     completeJob: "حفظ وإنهاء المهمة", exportDay: "تصدير اليوم PDF", reportDate: "تاريخ التقرير",
     duration: "المدة", jobsCount: "المهام", generatedOn: "تاريخ الإنشاء",
     onMyWay: "إبلاغ العميل أنني في الطريق", notifyDone: "إرسال إشعار الإنجاز للعميل",
+    printerHistory: "سجل صيانة الطابعة", noHistory: "لا توجد صيانة سابقة لهذه الطابعة.",
+    timeline: "الخط الزمني", previousVisits: "زيارات سابقة", history_btn: "السجل",
+    yourLocation: "موقعك (اختياري)", locationHint: "شارك موقعك ليتمكن الفني من الوصول إليك بسهولة.",
+    useMyLocation: "استخدام موقعي الحالي", pickOnMap: "اختيار من الخريطة", locating: "جارٍ تحديد موقعك…",
+    locationSet: "تم تثبيت الموقع. اسحب الدبوس أو اضغط على الخريطة للتعديل.", locationFailed: "تعذر تحديد موقعك. اضغط على الخريطة لوضع الدبوس.",
+    removePin: "إزالة الدبوس", mapPin: "دبوس الموقع", openMaps: "فتح في خرائط Google", navigate: "التوجيه",
+    accuracy: "الدقة",
   },
 };
 

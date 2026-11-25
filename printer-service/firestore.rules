@@ -36,8 +36,9 @@ service cloud.firestore {
 
       allow read, update, delete: if isAdmin();
 
-      // Technicians see and update only jobs assigned to them, and only the report fields.
-      allow read: if isTech() && resource.data.assignedTo == request.auth.uid;
+      // Technicians can read all jobs (needed for each printer's service history),
+      // but can update only jobs assigned to them, and only the report fields.
+      allow read: if isTech();
       allow update: if isTech() && resource.data.assignedTo == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'report', 'updatedAt', 'history'])
         && request.resource.data.status in ['in_progress', 'completed', 'follow_up'];

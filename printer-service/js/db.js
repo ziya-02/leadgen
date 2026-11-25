@@ -114,6 +114,7 @@ function demoBackend() {
     async getTicket(id) { return delay(load().tickets[id] || null); },
     subscribeComplaints(cb) { return subscribe((s) => Object.values(s.complaints).sort((a, b) => b.createdAt - a.createdAt), cb); },
     subscribeJobs(uid, cb) { return subscribe((s) => Object.values(s.complaints).filter((c) => c.assignedTo === uid).sort((a, b) => b.createdAt - a.createdAt), cb); },
+    async getPrinterHistory(printerId) { return delay(Object.values(load().complaints).filter((c) => c.printerId === printerId).sort((a, b) => b.createdAt - a.createdAt)); },
     async updateComplaint(id, patch) {
       mutate((s) => {
         const c = { ...s.complaints[id], ...patch };
@@ -149,7 +150,7 @@ async function firebaseBackend() {
   const auth = authM.getAuth(app);
   const db = fsM.getFirestore(app);
   const storage = CONFIG.inlinePhotos ? null : stM.getStorage(app);
-  const { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, onSnapshot, writeBatch } = fsM;
+  const { doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, collection, query, where, onSnapshot, writeBatch } = fsM;
 
   async function profile(fbUser) {
     if (!fbUser) return null;
@@ -197,6 +198,10 @@ async function firebaseBackend() {
     },
     subscribeJobs(uid, cb) {
       return onSnapshot(query(collection(db, "complaints"), where("assignedTo", "==", uid)), (snap) => cb(list(snap).sort((a, b) => b.createdAt - a.createdAt)));
+    },
+    async getPrinterHistory(printerId) {
+      const snap = await getDocs(query(collection(db, "complaints"), where("printerId", "==", printerId)));
+      return list(snap).sort((a, b) => b.createdAt - a.createdAt);
     },
     async updateComplaint(id, patch) {
       await updateDoc(doc(db, "complaints", id), patch);

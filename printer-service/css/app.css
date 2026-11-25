@@ -48,8 +48,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid color-mix(in srgb
 .checks label { display: flex; align-items: center; gap: 8px; font-weight: 500; border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; cursor: pointer; margin: 0; }
 .checks input { width: 18px; height: 18px; min-height: 0; margin: 0; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chips label { margin: 0; font-weight: 500; }
-.chips input { position: absolute; opacity: 0; pointer-events: none; }
+.chips label { margin: 0; font-weight: 500; position: relative; }
+.chips input { position: absolute; opacity: 0; pointer-events: none; width: 1px; height: 1px; min-height: 0; padding: 0; inset: 0; }
 .chips span { display: inline-block; border: 1px solid #cfd5df; border-radius: 999px; padding: 8px 14px; cursor: pointer; background: #fff; }
 .chips input:checked + span { background: var(--brand); border-color: var(--brand); color: #fff; }
 .chips input:focus-visible + span { outline: 2px solid var(--brand); outline-offset: 2px; }
@@ -144,3 +144,15 @@ tr.click { cursor: pointer; } tr.click:hover td { background: #f7faff; }
 .qr-label .t2 { font-size: 11px; }
 .qr-label .sn { font-family: ui-monospace, monospace; font-size: 11px; }
 .qr-label img.lg { max-height: 26px; max-width: 110px; }
+
+/* history + map */
+.hist-list { display: grid; gap: 8px; }
+details.hist { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; background: #fcfcfd; }
+details.hist > summary { cursor: pointer; list-style: none; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+details.hist > summary > .row { flex: 1; min-width: 0; }
+details.hist > summary::-webkit-details-marker { display: none; }
+details.hist > summary::before { content: "▸"; display: inline-block; margin-inline-end: 6px; color: var(--muted); transition: transform .15s; }
+[dir="rtl"] details.hist > summary::before { content: "◂"; }
+details.hist[open] > summary::before { transform: rotate(90deg); }
+[dir="rtl"] details.hist[open] > summary::before { transform: rotate(-90deg); }
+#map { height: 260px; border-radius: 10px; border: 1px solid var(--line); margin-top: 8px; z-index: 0; overflow: hidden; position: relative; }

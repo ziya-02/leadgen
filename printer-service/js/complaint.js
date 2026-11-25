@@ -43,6 +43,57 @@ else {
 
 const picker = photoPicker($("#photo-input"), $("#previews"));
 
+// ---------------- location pin (Leaflet + OpenStreetMap) ----------------
+const LEAFLET = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/";
+let geo = null, map = null, marker = null, geoKey = "";
+function loadLeaflet() {
+  if (window.L) return Promise.resolve();
+  // Wait for both the stylesheet and the script, otherwise map tiles render outside the map box.
+  const cssP = new Promise((res, rej) => { const l = document.createElement("link"); l.rel = "stylesheet"; l.href = LEAFLET + "leaflet.min.css"; l.onload = res; l.onerror = rej; document.head.appendChild(l); });
+  const jsP = new Promise((res, rej) => { const s = document.createElement("script"); s.src = LEAFLET + "leaflet.min.js"; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
+  return Promise.all([cssP, jsP]);
+}
+function geoText(key) { geoKey = key; $("#geo-info").textContent = key ? t(key) : ""; }
+function setPin(lat, lng, acc = null) {
+  geo = { lat: +lat.toFixed(6), lng: +lng.toFixed(6), acc: acc ? Math.round(acc) : null };
+  if (!marker) {
+    marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+    marker.on("dragend", () => { const p = marker.getLatLng(); setPin(p.lat, p.lng); });
+  } else marker.setLatLng([lat, lng]);
+  $("#geo-clear").hidden = false;
+  geoText("locationSet");
+}
+async function showMap(center, zoom) {
+  await loadLeaflet();
+  $("#map").hidden = false;
+  if (!map) {
+    map = L.map("map").setView(center, zoom);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "&copy; OpenStreetMap" }).addTo(map);
+    map.on("click", (e) => setPin(e.latlng.lat, e.latlng.lng));
+  } else map.setView(center, zoom);
+  setTimeout(() => map.invalidateSize(), 50);
+}
+const DEFAULT_CENTER = [25.2048, 55.2708]; // Dubai
+$("#pick-btn").onclick = async () => {
+  try { await showMap(geo ? [geo.lat, geo.lng] : DEFAULT_CENTER, geo ? 17 : 11); if (!geo) geoText("locationFailed"); }
+  catch { toast(t("error"), "bad"); }
+};
+$("#geo-btn").onclick = async () => {
+  geoText("locating");
+  try { await loadLeaflet(); } catch { toast(t("error"), "bad"); return; }
+  if (!navigator.geolocation) { await showMap(DEFAULT_CENTER, 11); geoText("locationFailed"); return; }
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => { const { latitude, longitude, accuracy } = pos.coords; await showMap([latitude, longitude], 17); setPin(latitude, longitude, accuracy); },
+    async () => { await showMap(DEFAULT_CENTER, 11); geoText("locationFailed"); },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+  );
+};
+$("#geo-clear").onclick = () => {
+  geo = null; if (marker) { marker.remove(); marker = null; }
+  $("#map").hidden = true; $("#geo-clear").hidden = true; geoText("");
+};
+document.addEventListener("langchange", () => geoText(geoKey));
+
 $("#form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const f = e.target, err = $("#form-err"); err.textContent = "";
@@ -57,14 +108,14 @@ $("#form").addEventListener("submit", async (e) => {
       ticketId, printerId: printer.id, serial: printer.serial, brand: printer.brand || "", model: printer.model || "",
       location: printer.location || "", printerClient: printer.clientName || "",
       name, phone, email: f.email.value.trim(), company: f.company.value.trim(),
-      issueType: f.issue.value || "other", description, photos,
+      issueType: f.issue.value || "other", description, photos, geo,
       status: "new", assignedTo: "", assignedName: "", createdAt: now, updatedAt: now,
       history: [{ status: "new", at: now, by: name }],
     };
     await api.createComplaint(c);
 
     sendEmail(settings.companyEmail, `New complaint ${ticketId} — ${printer.serial}`,
-      `New printer complaint\n\nTicket: ${ticketId}\nPrinter: ${c.brand} ${c.model} (${c.serial})\nClient: ${c.printerClient}\nLocation: ${c.location}\nReported by: ${name} ${phone}\nProblem: ${t("issue_" + c.issueType)}\n${description}`);
+      `New printer complaint\n\nTicket: ${ticketId}\nPrinter: ${c.brand} ${c.model} (${c.serial})\nClient: ${c.printerClient}\nLocation: ${c.location}\nReported by: ${name} ${phone}\nProblem: ${t("issue_" + c.issueType)}\n${description}${geo ? `\nMap: https://www.google.com/maps/search/?api=1&query=${geo.lat},${geo.lng}` : ""}`);
 
     $("#form").hidden = true; $("#done").hidden = false;
     $("#ticket-id").textContent = ticketId;
